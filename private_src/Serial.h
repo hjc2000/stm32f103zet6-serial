@@ -10,7 +10,8 @@
 
 namespace hal
 {
-    class Serial : public bsp::ISerial
+    class Serial :
+        public bsp::ISerial
     {
     private:
         Serial() = default;
@@ -34,31 +35,7 @@ namespace hal
 #pragma endregion
 
     public:
-        static_function Serial &Instance()
-        {
-            class Getter :
-                public base::SingletonGetter<Serial>
-            {
-            public:
-                std::unique_ptr<Serial> Create() override
-                {
-                    return std::unique_ptr<Serial>{new Serial{}};
-                }
-
-                void Lock() override
-                {
-                    DI_InterruptSwitch().DisableGlobalInterrupt();
-                }
-
-                void Unlock() override
-                {
-                    DI_InterruptSwitch().EnableGlobalInterrupt();
-                }
-            };
-
-            Getter g;
-            return g.Instance();
-        }
+        static_function Serial &Instance();
 
         std::string Name()
         {

@@ -129,6 +129,32 @@ void Serial::OnSendCompleteCallback(UART_HandleTypeDef *huart)
 
 #pragma endregion
 
+hal::Serial &hal::Serial::Instance()
+{
+    class Getter :
+        public base::SingletonGetter<Serial>
+    {
+    public:
+        std::unique_ptr<Serial> Create() override
+        {
+            return std::unique_ptr<Serial>{new Serial{}};
+        }
+
+        void Lock() override
+        {
+            DI_InterruptSwitch().DisableGlobalInterrupt();
+        }
+
+        void Unlock() override
+        {
+            DI_InterruptSwitch().EnableGlobalInterrupt();
+        }
+    };
+
+    Getter g;
+    return g.Instance();
+}
+
 void Serial::Open(bsp::ISerialOptions const &options)
 {
     InitializeGpio();
@@ -183,6 +209,8 @@ void Serial::Close()
     DI_InterruptSwitch().DisableInterrupt(IRQn_Type::USART1_IRQn);
     DI_InterruptSwitch().DisableInterrupt(IRQn_Type::DMA1_Channel4_IRQn);
     DI_InterruptSwitch().DisableInterrupt(IRQn_Type::DMA1_Channel5_IRQn);
+    DI_DmaChannelCollection().Get("dma1_channel4")->Close();
+    DI_DmaChannelCollection().Get("dma1_channel5")->Close();
 }
 
 #pragma endregion
