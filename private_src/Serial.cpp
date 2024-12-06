@@ -13,27 +13,18 @@ void hal::Serial::InitializeGpio()
 {
     // PA9
     {
-        auto options = DICreate_GpioPinOptions();
-        options->SetAlternateFunction("af_push_pull");
-        options->SetDirection(bsp::IGpioPinDirection::Output);
-        options->SetDriver(bsp::IGpioPinDriver::PushPull);
-        options->SetPullMode(bsp::IGpioPinPullMode::PullUp);
-        options->SetSpeedLevel(2);
-        options->SetWorkMode(bsp::IGpioPinWorkMode::AlternateFunction);
         bsp::IGpioPin *pin = DI_GpioPinCollection().Get("PA9");
-        pin->Open(*options);
+        pin->OpenAsAlternateFunctionMode("af_push_pull",
+                                         bsp::IGpioPinPullMode::PullUp,
+                                         bsp::IGpioPinDriver::PushPull);
     }
 
     // PA10
     {
-        auto options = DICreate_GpioPinOptions();
-        options->SetAlternateFunction("af_input");
-        options->SetDirection(bsp::IGpioPinDirection::Input);
-        options->SetPullMode(bsp::IGpioPinPullMode::PullUp);
-        options->SetSpeedLevel(2);
-        options->SetWorkMode(bsp::IGpioPinWorkMode::AlternateFunction);
         bsp::IGpioPin *pin = DI_GpioPinCollection().Get("PA10");
-        pin->Open(*options);
+        pin->OpenAsAlternateFunctionMode("af_input",
+                                         bsp::IGpioPinPullMode::PullUp,
+                                         bsp::IGpioPinDriver::PushPull);
     }
 }
 
