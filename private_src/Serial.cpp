@@ -98,9 +98,9 @@ void hal::Serial::InitializeInterrupt()
                                HAL_DMA_IRQHandler(_uart_handle.hdmarx);
                            });
 
-    DI_InterruptSwitch().EnableInterrupt(IRQn_Type::USART1_IRQn, 10);
-    DI_InterruptSwitch().EnableInterrupt(IRQn_Type::DMA1_Channel4_IRQn, 10);
-    DI_InterruptSwitch().EnableInterrupt(IRQn_Type::DMA1_Channel5_IRQn, 10);
+    DI_EnableInterrupt(IRQn_Type::USART1_IRQn, 10);
+    DI_EnableInterrupt(IRQn_Type::DMA1_Channel4_IRQn, 10);
+    DI_EnableInterrupt(IRQn_Type::DMA1_Channel5_IRQn, 10);
 }
 
 #pragma endregion
@@ -133,12 +133,12 @@ hal::Serial &hal::Serial::Instance()
 
         void Lock() override
         {
-            DI_InterruptSwitch().DisableGlobalInterrupt();
+            DI_DisableGlobalInterrupt();
         }
 
         void Unlock() override
         {
-            DI_InterruptSwitch().EnableGlobalInterrupt();
+            DI_EnableGlobalInterrupt();
         }
     };
 
@@ -166,7 +166,7 @@ int32_t Serial::Read(uint8_t *buffer, int32_t offset, int32_t count)
     base::LockGuard l{*_read_lock};
     while (true)
     {
-        DI_InterruptSwitch().DoGlobalCriticalWork(
+        DI_DoGlobalCriticalWork(
             [&]()
             {
                 HAL_UARTEx_ReceiveToIdle_DMA(&_uart_handle, buffer + offset, count);
@@ -197,9 +197,9 @@ void Serial::Write(uint8_t const *buffer, int32_t offset, int32_t count)
 void Serial::Close()
 {
     HAL_UART_DMAStop(&_uart_handle);
-    DI_InterruptSwitch().DisableInterrupt(IRQn_Type::USART1_IRQn);
-    DI_InterruptSwitch().DisableInterrupt(IRQn_Type::DMA1_Channel4_IRQn);
-    DI_InterruptSwitch().DisableInterrupt(IRQn_Type::DMA1_Channel5_IRQn);
+    DI_DisableInterrupt(IRQn_Type::USART1_IRQn);
+    DI_DisableInterrupt(IRQn_Type::DMA1_Channel4_IRQn);
+    DI_DisableInterrupt(IRQn_Type::DMA1_Channel5_IRQn);
     DI_DmaChannelCollection().Get("dma1_channel4")->Close();
     DI_DmaChannelCollection().Get("dma1_channel5")->Close();
 }
