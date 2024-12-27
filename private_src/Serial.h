@@ -1,6 +1,7 @@
 #pragma once
 #include <atomic>
 #include <base/di/SingletonGetter.h>
+#include <base/task/IMutex.h>
 #include <bsp-interface/di/interrupt.h>
 #include <bsp-interface/di/task.h>
 #include <bsp-interface/serial/ISerial.h>
@@ -19,7 +20,7 @@ namespace hal
         UART_HandleTypeDef _uart_handle{};
         std::shared_ptr<bsp::IBinarySemaphore> _send_complete_signal = DICreate_BinarySemaphore();
         std::shared_ptr<bsp::IBinarySemaphore> _receive_complete_signal = DICreate_BinarySemaphore();
-        std::shared_ptr<bsp::IMutex> _read_lock = DICreate_Mutex();
+        std::shared_ptr<base::IMutex> _read_lock = base::di::CreateMutex();
         int32_t _current_receive_count = 0;
 
 #pragma region 初始化
