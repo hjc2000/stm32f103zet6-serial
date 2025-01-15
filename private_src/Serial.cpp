@@ -166,19 +166,18 @@ int32_t Serial::Read(uint8_t *buffer, int32_t offset, int32_t count)
     base::LockGuard l{*_read_lock};
     while (true)
     {
-        DI_DoGlobalCriticalWork(
-            [&]()
-            {
-                HAL_UARTEx_ReceiveToIdle_DMA(&_uart_handle, buffer + offset, count);
+        {
+            bsp::GlobalInterruptGuard g;
+            HAL_UARTEx_ReceiveToIdle_DMA(&_uart_handle, buffer + offset, count);
 
-                /*
-                 * 通过赋值为空指针，把传输半满回调给禁用，不然接收的数据较长，超过缓冲区一半时，
-                 * 即使是一次性接收的，UART 也会回调 OnReceiveEventCallback 两次。
-                 *
-                 * 这个操作需要在临界区中，并且 DMA 的中断要处于 freertos 的管理范围内，否则无效。
-                 */
-                _uart_handle.hdmarx->XferHalfCpltCallback = nullptr;
-            });
+            /*
+             * 通过赋值为空指针，把传输半满回调给禁用，不然接收的数据较长，超过缓冲区一半时，
+             * 即使是一次性接收的，UART 也会回调 OnReceiveEventCallback 两次。
+             *
+             * 这个操作需要在临界区中，并且 DMA 的中断要处于 freertos 的管理范围内，否则无效。
+             */
+            _uart_handle.hdmarx->XferHalfCpltCallback = nullptr;
+        }
 
         _receive_complete_signal->Acquire();
         if (_current_receive_count > 0)
